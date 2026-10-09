@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devconnect-config
+  namespace: devconnect
+data:
+  POSTGRES_DB: cloudconnect
+  POSTGRES_USER: cloudconnect
+  REDIS_URL: redis://redis:6379/0
+  POST_CREATE_QUEUE: cloudconnect:queue:post-create
+  JWT_ALGORITHM: HS256
+  JWT_EXPIRES_MINUTES: "10080"
+  DB_INIT_LOCK_ID: "987654321"

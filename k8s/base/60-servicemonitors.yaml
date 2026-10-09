@@ -1,0 +1,47 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: devconnect-fastapi-services
+  namespace: devconnect
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - devconnect
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - auth-service
+          - user-service
+          - post-service
+          - like-service
+          - comment-service
+          - analytics-service
+  endpoints:
+    - port: http
+      path: /prometheus
+      interval: 30s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: devconnect-worker-service
+  namespace: devconnect
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - devconnect
+  selector:
+    matchLabels:
+      app: worker-service
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s

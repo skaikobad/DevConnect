@@ -1,0 +1,159 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cloudconnect-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cloudconnect}
+      POSTGRES_USER: ${POSTGRES_USER:-cloudconnect}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cloudconnect123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cloudconnect} -d ${POSTGRES_DB:-cloudconnect}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - cloudconnect-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: cloudconnect-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - cloudconnect-net
+
+  auth-service:
+    build: ./services/auth-service
+    container_name: cloudconnect-auth
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
+    networks:
+      - cloudconnect-net
+
+  user-service:
+    build: ./services/user-service
+    container_name: cloudconnect-user
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8002:8000"
+    networks:
+      - cloudconnect-net
+
+  post-service:
+    build: ./services/post-service
+    container_name: cloudconnect-post
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8003:8000"
+    networks:
+      - cloudconnect-net
+
+  like-service:
+    build: ./services/like-service
+    container_name: cloudconnect-like
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8004:8000"
+    networks:
+      - cloudconnect-net
+
+  comment-service:
+    build: ./services/comment-service
+    container_name: cloudconnect-comment
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8005:8000"
+    networks:
+      - cloudconnect-net
+
+  analytics-service:
+    build: ./services/analytics-service
+    container_name: cloudconnect-analytics
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8006:8000"
+    networks:
+      - cloudconnect-net
+
+  worker-service:
+    build: ./services/worker-service
+    container_name: cloudconnect-worker
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "9100:9100"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cloudconnect-net
+
+  frontend:
+    build: ./frontend
+    container_name: cloudconnect-frontend
+    restart: unless-stopped
+    depends_on:
+      - auth-service
+      - user-service
+      - post-service
+      - like-service
+      - comment-service
+      - analytics-service
+      - worker-service
+    ports:
+      - "3000:80"
+    networks:
+      - cloudconnect-net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  cloudconnect-net:
+    driver: bridge
