@@ -162,7 +162,7 @@ function ArchitecturePage() {
   return (
     <main className="info-page">
       <section className="page-hero">
-        <div className="pill"><Network size={14} /> Professional Social Platform Architecture</div>
+        <div className="pill"><Network size={14} />Professional Social Platform Architecture</div>
         <h1>DevConnect Production Architecture</h1>
         <p>DevConnect is designed as a developer social platform: users create profiles, publish posts with optional public images, comment, like content, and view analytics. Locally it runs with Docker Compose and Nginx. In production it maps to Kubernetes on EC2, ArgoCD GitOps, DockerHub images, PostgreSQL, Redis Queue, and a full Prometheus/Grafana/Loki monitoring stack.</p>
       </section>
