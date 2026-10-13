@@ -1,10 +1,10 @@
 .env
+*.tfvars
 node_modules
 dist
 __pycache__
 *.pyc
 .DS_Store
-
 # DevOps outputs
 dependency-check-report/
 frontend/dist/
